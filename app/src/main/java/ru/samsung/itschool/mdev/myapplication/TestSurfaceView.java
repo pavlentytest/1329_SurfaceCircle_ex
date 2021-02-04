@@ -24,6 +24,7 @@ public class TestSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     @Override
     public void surfaceCreated(@NonNull SurfaceHolder holder) {
             myThread = new MyThread();
+            myThread.setRunning(true);
             myThread.start();
     }
 
@@ -34,7 +35,16 @@ public class TestSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     @Override
     public void surfaceDestroyed(@NonNull SurfaceHolder holder) {
-
+        myThread.setRunning(false);
+        boolean retry = true;
+        while(retry) {
+            try {
+                myThread.join();
+                retry = false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
@@ -47,11 +57,17 @@ public class TestSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
     class MyThread extends Thread {
+        private boolean running;
+
+        public void setRunning(boolean running) {
+            this.running = running;
+        }
+
         @Override
         public void run() {
             Paint paint = new Paint();
             paint.setColor(Color.YELLOW);
-            while(true) {
+            while(running) {
                 Canvas canvas = getHolder().lockCanvas();
                 canvas.drawColor(Color.BLUE);
                 r += touchFlag ? 5 : 0;
